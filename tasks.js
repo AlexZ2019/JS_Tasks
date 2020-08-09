@@ -95,3 +95,95 @@ function getOddNumbers(n) {
 
 console.log(getOddNumbers(15))
 
+// functions
+
+// create a func "multiply" what get any quantity of numbers and return their multiply
+
+function multiply() {
+    if (!arguments) {
+        return 0;
+    }
+    let result = 1;
+    for (let i = 0; i < arguments.length; i++) {
+        result *= arguments[i]
+    }
+
+    return result;
+}
+
+console.log(multiply(1, 2));
+
+// get a factorial of a number with the help of recursion
+
+function getFactorial(n) {
+    if (n < 0) {
+        return -1
+    }
+
+    return n > 0 ? n * getFactorial(n - 1) : 1;
+}
+
+console.log(getFactorial(10));
+
+// create a func what get a string only with letters a return a string where each symbol is separated by space and exchange
+// on unicode-value of this one
+
+function getCodeStrFromText(str) {
+    const DIVIDER = " ";
+    let symbols = "";
+    for (let i = 0; i < str.length; i++) {
+        symbols += (i === 0 ? "" : DIVIDER) + str[i].charCodeAt(str[i]);
+    }
+
+    return symbols;
+}
+
+console.log(getCodeStrFromText("hello"));
+
+// create a function-recursive what output each symbol of a string to console
+
+function printChars(str) {
+    if (str.length > 1) {
+        console.log(str.slice(0, 1));
+        str = str.slice(1);
+
+        return printChars(str);
+    }
+    else {
+        return str;
+    }
+}
+
+console.log(printChars("test"));
+
+function printEachChar(str, char = 0) {
+    if (str.length > char) {
+        console.log(str[char]);
+        return printChars(str, str[char] + 1);
+    }
+}
+
+console.log(printEachChar("test"));
+
+// create 2 functions. The first one gets an array and a callback. The callback function outputs
+// "New value: ChangedArray"
+
+function mapArray(array, callBack) {
+    let result = [];
+    for (let i = 0; i < array.length; i++) {
+        result.push(callBack(array[i]));
+    }
+
+    return "New value: " + result;
+}
+
+console.log(mapArray(["abc", "123"], revertStr));
+
+function revertStr(str) {
+    let result = "";
+    for (let j = 0; j < str.length; j++) {
+        result += str[str.length - 1 - j];
+    }
+
+    return result;
+}
