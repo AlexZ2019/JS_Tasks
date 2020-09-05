@@ -65,9 +65,7 @@ function createTaskList(divClassName) {
 
     function popUpNotification(status) {
         let notification = document.createElement("div");
-        status
-            ? notification.innerText = "task was added"
-            : notification.innerText = "task was deleted";
+        notification.innerText = status ? "task was added" : "task was deleted";
 
         div.prepend(notification);
         setTimeout(() => {
