@@ -33,10 +33,11 @@ function createTaskList(selector) {
     let input = div.querySelector(".enter-task");
     let addTaskBtn = div.querySelector(".add-task-button");
 
-    function initItemList(task) {
+    function initItemList(id, task) {
         let li = document.createElement("li");
         li.textContent = task;
         li.classList.add("list-item");
+        li.setAttribute("data-id", id);
         let deleteBtn = document.createElement("button");
         deleteBtn.classList.add(CLASS_DELETE_TASK_BUTTON);
         li.appendChild(deleteBtn);
@@ -46,13 +47,13 @@ function createTaskList(selector) {
 
     function renderTasks() {
         if (!tasks.length) {
-            div.insertAdjacentHTML("beforebegin", "<div class='empty-list'>list is empty</div>");
+            div.insertAdjacentHTML("afterbegin", "<div class='empty-list'>list is empty</div>");
         } else {
-            if (document.getElementsByClassName(CLASS_EMPTY_LIST)[0]) {
-                document.getElementsByClassName(CLASS_EMPTY_LIST)[0].remove();
+            if (div.children[0].className === CLASS_EMPTY_LIST) {
+                div.children[0].remove();
             }
             for (let i = 0; i < tasks.length; i++) {
-                ul.appendChild(initItemList(tasks[i].task));
+                ul.appendChild(initItemList(tasks[i].id, tasks[i].task));
             }
         }
     }
@@ -62,6 +63,7 @@ function createTaskList(selector) {
     function clearList() {
         ul.innerText = "";
     }
+
     addTaskBtn.addEventListener("click", () => {
         if (input.value.length) {
             tasks.push({id: tasks.length, task: input.value});
@@ -80,20 +82,22 @@ function createTaskList(selector) {
         }
     })
 
-    ul.addEventListener("click", function deleteTask (e) {
-        if (e.target.classList.contains(CLASS_DELETE_TASK_BUTTON)) {
-            let parent = e.target.closest("li");
-            let text = parent.textContent;
+    function deleteTask(e) {
+        if (e.target.className === CLASS_DELETE_TASK_BUTTON) {
+            let parent = e.target.parentElement;
             for (let i = 0; i < tasks.length; i++) {
-                if (tasks[i].task === text) {
+                if (tasks[i].id === Number(parent.getAttribute("data-id"))) {
                     tasks.splice(i, 1);
                 }
             }
-            popUpNotification(false)
+            popUpNotification(false);
             clearList();
             renderTasks();
         }
-    })
+    }
+
+
+    ul.addEventListener("click", (e) => deleteTask(e));
 
     function popUpNotification(status) {
         let notification = document.createElement("div");
