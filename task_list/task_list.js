@@ -5,10 +5,10 @@ function createTaskList(selector) {
     const CLASS_DELETE_TASK_BUTTON = "delete-task-button";
     const CLASS_CLEAR_LIST_BUTTON = "clear-list-button";
     const CLASS_EMPTY_LIST = "empty-list";
-    const TIMEOUT = 2000;
+    const TIMEOUT_FOR_NOTIFICATION = 2000;
 
     let tasks = [];
-    let div = document.querySelector(selector);
+    let containerForTaskList = document.querySelector(selector);
 
     function addListElement(tagName, className = null, innerText = null) {
         let newElement = document.createElement(tagName);
@@ -17,67 +17,69 @@ function createTaskList(selector) {
         if (newElement.tagName === BUTTON_TEG_NAME) {
             newElement.innerText = innerText;
         }
-        div.appendChild(newElement);
+        containerForTaskList.appendChild(newElement);
     }
 
     function init() {
-        addListElement("ul", CLASS_TASK_LIST);
+        addListElement("div", CLASS_TASK_LIST);
         addListElement("input", CLASS_ENTER_TASK);
         addListElement("button", CLASS_ADD_TASK_BUTTON, "Add task");
         addListElement("button", CLASS_CLEAR_LIST_BUTTON, "Clear list");
     }
 
     init();
-    let clearListBtn = div.querySelector(".clear-list-button");
-    let ul = div.querySelector(".task-list");
-    let input = div.querySelector(".enter-task");
-    let addTaskBtn = div.querySelector(".add-task-button");
+    let clearListBtn = containerForTaskList.querySelector(".clear-list-button");
+    let taskList = containerForTaskList.querySelector(".task-list");
+    let input = containerForTaskList.querySelector(".enter-task");
+    let addTaskBtn = containerForTaskList.querySelector(".add-task-button");
 
     function initItemList(id, task) {
-        let li = document.createElement("li");
-        li.textContent = task;
-        li.classList.add("list-item");
-        li.setAttribute("data-id", id);
+        let taskItem = document.createElement("div");
+        taskItem.textContent = task;
+        taskItem.classList.add("list-item");
+        taskItem.setAttribute("data-id", id);
         let deleteBtn = document.createElement("button");
         deleteBtn.classList.add(CLASS_DELETE_TASK_BUTTON);
-        li.appendChild(deleteBtn);
+        taskItem.appendChild(deleteBtn);
 
-        return li;
+        return taskItem;
     }
 
     function renderTasks() {
+        taskList.innerText = "";
         if (!tasks.length) {
-            div.insertAdjacentHTML("afterbegin", "<div class='empty-list'>list is empty</div>");
+            containerForTaskList.insertAdjacentHTML("afterbegin", "<div class='empty-list'>list is empty</div>");
         } else {
-            if (div.children[0].className === CLASS_EMPTY_LIST) {
-                div.children[0].remove();
+            if (containerForTaskList.children[0].className === CLASS_EMPTY_LIST) {
+                containerForTaskList.children[0].remove();
             }
             for (let i = 0; i < tasks.length; i++) {
-                ul.appendChild(initItemList(tasks[i].id, tasks[i].task));
+                taskList.appendChild(initItemList(tasks[i].id, tasks[i].task));
             }
         }
     }
 
     renderTasks();
-
-    function clearList() {
-        ul.innerText = "";
+    function createIdForTask() {
+        let id = 1;
+        return function () {
+            return id++;
+        }
     }
+    let uniqId = createIdForTask();
 
     addTaskBtn.addEventListener("click", () => {
         if (input.value.length) {
-            tasks.push({id: tasks.length, task: input.value});
-            clearList();
+            tasks.push({id: uniqId(), task: input.value});
             input.value = "";
             renderTasks();
-            popUpNotification(true);
+            ShowPopUpNotification(true);
         }
     })
 
     clearListBtn.addEventListener("click", () => {
         if (tasks.length) {
             tasks = [];
-            clearList();
             renderTasks();
         }
     })
@@ -90,23 +92,20 @@ function createTaskList(selector) {
                     tasks.splice(i, 1);
                 }
             }
-            popUpNotification(false);
-            clearList();
+            ShowPopUpNotification(false);
             renderTasks();
         }
     }
 
+    taskList.addEventListener("click", (e) => deleteTask(e));
 
-    ul.addEventListener("click", (e) => deleteTask(e));
-
-    function popUpNotification(status) {
+    function ShowPopUpNotification(status) {
         let notification = document.createElement("div");
         notification.innerText = status ? "task was added" : "task was deleted";
-
-        div.prepend(notification);
+        containerForTaskList.prepend(notification);
         setTimeout(() => {
-            div.removeChild(notification);
-        }, TIMEOUT);
+            containerForTaskList.removeChild(notification);
+        }, TIMEOUT_FOR_NOTIFICATION);
     }
 }
 
