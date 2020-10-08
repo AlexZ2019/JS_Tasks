@@ -5,10 +5,17 @@ function createTaskList(selector) {
     const CLASS_DELETE_TASK_BUTTON = "delete-task-button";
     const CLASS_CLEAR_LIST_BUTTON = "clear-list-button";
     const CLASS_EMPTY_LIST = "empty-list";
+    const DELETE_TASK = 0;
+    const ADD_TASK = 1;
     const TIMEOUT_FOR_NOTIFICATION = 2000;
 
     let tasks = [];
+    const messagesForNotification = [
+        "The task has been deleted",
+        "The task has been added"
+    ];
     let containerForTaskList = document.querySelector(selector);
+    let uniqId = createIdForTask();
 
     function addListElement(tagName, className = null, innerText = null) {
         let newElement = document.createElement(tagName);
@@ -26,13 +33,6 @@ function createTaskList(selector) {
         addListElement("button", CLASS_ADD_TASK_BUTTON, "Add task");
         addListElement("button", CLASS_CLEAR_LIST_BUTTON, "Clear list");
     }
-
-    init();
-    let clearListBtn = containerForTaskList.querySelector(".clear-list-button");
-    let taskList = containerForTaskList.querySelector(".task-list");
-    let input = containerForTaskList.querySelector(".enter-task");
-    let addTaskBtn = containerForTaskList.querySelector(".add-task-button");
-
     function initItemList(id, task) {
         let taskItem = document.createElement("div");
         taskItem.textContent = task;
@@ -44,7 +44,6 @@ function createTaskList(selector) {
 
         return taskItem;
     }
-
     function renderTasks() {
         taskList.innerText = "";
         if (!tasks.length) {
@@ -58,32 +57,28 @@ function createTaskList(selector) {
             }
         }
     }
-
-    renderTasks();
     function createIdForTask() {
         let id = 1;
         return function () {
             return id++;
         }
     }
-    let uniqId = createIdForTask();
-
-    addTaskBtn.addEventListener("click", () => {
+    function ShowPopUpNotification(status) {
+        let notification = document.createElement("div");
+        notification.innerText = status ? messagesForNotification[ADD_TASK] : messagesForNotification[DELETE_TASK];
+        containerForTaskList.prepend(notification);
+        setTimeout(() => {
+            containerForTaskList.removeChild(notification);
+        }, TIMEOUT_FOR_NOTIFICATION);
+    }
+    function addTask() {
         if (input.value.length) {
             tasks.push({id: uniqId(), task: input.value});
             input.value = "";
             renderTasks();
-            ShowPopUpNotification(true);
+            ShowPopUpNotification(ADD_TASK);
         }
-    })
-
-    clearListBtn.addEventListener("click", () => {
-        if (tasks.length) {
-            tasks = [];
-            renderTasks();
-        }
-    })
-
+    }
     function deleteTask(e) {
         if (e.target.className === CLASS_DELETE_TASK_BUTTON) {
             let parent = e.target.parentElement;
@@ -92,21 +87,26 @@ function createTaskList(selector) {
                     tasks.splice(i, 1);
                 }
             }
-            ShowPopUpNotification(false);
+            ShowPopUpNotification(DELETE_TASK);
             renderTasks();
         }
     }
-
-    taskList.addEventListener("click", (e) => deleteTask(e));
-
-    function ShowPopUpNotification(status) {
-        let notification = document.createElement("div");
-        notification.innerText = status ? "task was added" : "task was deleted";
-        containerForTaskList.prepend(notification);
-        setTimeout(() => {
-            containerForTaskList.removeChild(notification);
-        }, TIMEOUT_FOR_NOTIFICATION);
+    function clearList() {
+        if (tasks.length) {
+            tasks = [];
+            renderTasks();
+        }
     }
+    init();
+    let clearListBtn = containerForTaskList.querySelector("." + CLASS_CLEAR_LIST_BUTTON);
+    let taskList = containerForTaskList.querySelector("." + CLASS_TASK_LIST);
+    let input = containerForTaskList.querySelector("." + CLASS_ENTER_TASK);
+    let addTaskBtn = containerForTaskList.querySelector("." + CLASS_ADD_TASK_BUTTON);
+
+    renderTasks();
+    addTaskBtn.addEventListener("click", addTask);
+    clearListBtn.addEventListener("click", clearList);
+    taskList.addEventListener("click", deleteTask);
 }
 
 createTaskList(".task-list-wrapper");
