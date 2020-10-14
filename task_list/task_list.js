@@ -6,20 +6,18 @@ function createTaskList(selector) {
     const CLASS_CLEAR_LIST_BUTTON = "clear-list-button";
     const CLASS_EMPTY_LIST = "empty-list";
     const CLASS_TASK_COMPLETE = "task-complete";
-    const DELETE_TASK = 0;
-    const ADD_TASK = 1;
-    const TIMEOUT_FOR_NOTIFICATION = 2000;
+    const TIMEOUT_FOR_HIDING_NOTIFICATION = 2000;
 
     let tasks = [];
-    let messagesForNotification = [
-        "The task has been deleted",
-        "The task has been added"
-    ];
-    let id = 0;
+    let messagesForNotification = {
+       DELETE_TASK: "The task has been deleted",
+       ADD_TASK: "The task has been added"
+    };
+    let taskId = 0;
     let containerForTaskList = document.querySelector(selector);
 
     function init() {
-        function addListElement(tagName, className = null, innerText = null) {
+        function _addListElement(tagName, className = null, innerText = null) {
             let newElement = document.createElement(tagName);
             const BUTTON_TEG_NAME = "BUTTON";
             newElement.className = className;
@@ -29,10 +27,23 @@ function createTaskList(selector) {
             containerForTaskList.appendChild(newElement);
         }
 
-        addListElement("div", CLASS_TASK_LIST);
-        addListElement("input", CLASS_ENTER_TASK);
-        addListElement("button", CLASS_ADD_TASK_BUTTON, "Add task");
-        addListElement("button", CLASS_CLEAR_LIST_BUTTON, "Clear list");
+        _addListElement("div", CLASS_TASK_LIST);
+        _addListElement("input", CLASS_ENTER_TASK);
+        _addListElement("button", CLASS_ADD_TASK_BUTTON, "Add task");
+        _addListElement("button", CLASS_CLEAR_LIST_BUTTON, "Clear list");
+    }
+
+    function deleteTask(e) {
+        let parent = e.target.parentElement;
+        let taskId = Number(parent.getAttribute("data-id"))
+        for (let i = 0; i < tasks.length; i++) {
+            if (tasks[i].id === taskId) {
+                tasks.splice(i, 1);
+                break;
+            }
+        }
+        displayPopUpNotification(messagesForNotification.DELETE_TASK);
+        renderTasks();
     }
 
     function initItemList(id, task) {
@@ -46,6 +57,7 @@ function createTaskList(selector) {
         taskItem.prepend(taskCompleteCheckbox);
         let deleteBtn = document.createElement("button");
         deleteBtn.classList.add(CLASS_DELETE_TASK_BUTTON);
+        deleteBtn.addEventListener("click", deleteTask);
         taskItem.appendChild(deleteBtn);
 
         return taskItem;
@@ -53,48 +65,38 @@ function createTaskList(selector) {
 
     function renderTasks() {
         taskList.innerText = "";
-        if (!tasks.length) {
-            containerForTaskList.insertAdjacentHTML("afterbegin", "<div class='empty-list'>list is empty</div>");
-        } else {
-            if (containerForTaskList.children[0].className === CLASS_EMPTY_LIST) {
-                containerForTaskList.children[0].remove();
+        if (tasks.length) {
+            if (containerForTaskList.querySelector("." + CLASS_EMPTY_LIST)) {
+                containerForTaskList.querySelector("." + CLASS_EMPTY_LIST).remove();
+
             }
             for (let i = 0; i < tasks.length; i++) {
                 taskList.appendChild(initItemList(tasks[i].id, tasks[i].task));
             }
+        } else {
+            containerForTaskList.insertAdjacentHTML("afterbegin", "<div class='empty-list'>list is empty</div>");
         }
     }
 
-    function displayPopUpNotification(status) {
-        let notification = document.createElement("div");
-        notification.innerText = status ? messagesForNotification[ADD_TASK] : messagesForNotification[DELETE_TASK];
-        containerForTaskList.prepend(notification);
+    function _hideNotificationAfterTimeout(notification) {
         setTimeout(() => {
             containerForTaskList.removeChild(notification);
-        }, TIMEOUT_FOR_NOTIFICATION);
+        }, TIMEOUT_FOR_HIDING_NOTIFICATION);
+    }
+
+    function displayPopUpNotification(messageForNotification) {
+        let notification = document.createElement("div");
+        notification.innerText = messageForNotification;
+        containerForTaskList.prepend(notification);
+        _hideNotificationAfterTimeout(notification);
     }
 
     function addTask() {
         if (input.value.length) {
-            id++;
-            tasks.push({id, task: input.value});
+            taskId++;
+            tasks.push({id: taskId, task: input.value});
             input.value = "";
-            renderTasks();
-            displayPopUpNotification(ADD_TASK);
-        }
-    }
-
-    function deleteTask(e) {
-        if (e.target.className === CLASS_DELETE_TASK_BUTTON) {
-            let parent = e.target.parentElement;
-            let taskId = Number(parent.getAttribute("data-id"))
-            for (let i = 0; i < tasks.length; i++) {
-                if (tasks[i].id === taskId) {
-                    tasks.splice(i, 1);
-                    break;
-                }
-            }
-            displayPopUpNotification(DELETE_TASK);
+            displayPopUpNotification(messagesForNotification.ADD_TASK);
             renderTasks();
         }
     }
@@ -116,7 +118,6 @@ function createTaskList(selector) {
     renderTasks();
     addTaskBtn.addEventListener("click", addTask);
     clearListBtn.addEventListener("click", clearList);
-    taskList.addEventListener("click", deleteTask);
 }
 
 createTaskList(".task-list-wrapper");
