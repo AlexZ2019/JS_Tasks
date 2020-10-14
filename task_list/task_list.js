@@ -6,6 +6,7 @@ function createTaskList(selector) {
     const CLASS_CLEAR_LIST_BUTTON = "clear-list-button";
     const CLASS_EMPTY_LIST = "empty-list";
     const CLASS_TASK_COMPLETE = "task-complete";
+    const CLASS_NOTIFICATION = "task-complete";
     const TIMEOUT_FOR_HIDING_NOTIFICATION = 2000;
 
     let tasks = [];
@@ -27,23 +28,13 @@ function createTaskList(selector) {
             containerForTaskList.appendChild(newElement);
         }
 
+        _addListElement("div", CLASS_NOTIFICATION);
         _addListElement("div", CLASS_TASK_LIST);
         _addListElement("input", CLASS_ENTER_TASK);
         _addListElement("button", CLASS_ADD_TASK_BUTTON, "Add task");
         _addListElement("button", CLASS_CLEAR_LIST_BUTTON, "Clear list");
-    }
 
-    function deleteTask(e) {
-        let parent = e.target.parentElement;
-        let taskId = Number(parent.getAttribute("data-id"))
-        for (let i = 0; i < tasks.length; i++) {
-            if (tasks[i].id === taskId) {
-                tasks.splice(i, 1);
-                break;
-            }
-        }
-        displayPopUpNotification(messagesForNotification.DELETE_TASK);
-        renderTasks();
+        containerForTaskList.querySelector("." + CLASS_NOTIFICATION).style = "height: 20px"; // temporary
     }
 
     function initItemList(id, task) {
@@ -68,7 +59,6 @@ function createTaskList(selector) {
         if (tasks.length) {
             if (containerForTaskList.querySelector("." + CLASS_EMPTY_LIST)) {
                 containerForTaskList.querySelector("." + CLASS_EMPTY_LIST).remove();
-
             }
             for (let i = 0; i < tasks.length; i++) {
                 taskList.appendChild(initItemList(tasks[i].id, tasks[i].task));
@@ -78,17 +68,28 @@ function createTaskList(selector) {
         }
     }
 
-    function _hideNotificationAfterTimeout(notification) {
+    function _hideNotificationAfterTimeout() {
         setTimeout(() => {
-            containerForTaskList.removeChild(notification);
+            containerForTaskList.querySelector("." + CLASS_NOTIFICATION).innerText = "";
         }, TIMEOUT_FOR_HIDING_NOTIFICATION);
     }
 
     function displayPopUpNotification(messageForNotification) {
-        let notification = document.createElement("div");
-        notification.innerText = messageForNotification;
-        containerForTaskList.prepend(notification);
-        _hideNotificationAfterTimeout(notification);
+        containerForTaskList.querySelector("." + CLASS_NOTIFICATION).innerText = messageForNotification;
+        _hideNotificationAfterTimeout();
+    }
+
+    function deleteTask(e) {
+        let parent = e.target.parentElement;
+        let taskId = Number(parent.getAttribute("data-id"))
+        for (let i = 0; i < tasks.length; i++) {
+            if (tasks[i].id === taskId) {
+                tasks.splice(i, 1);
+                break;
+            }
+        }
+        displayPopUpNotification(messagesForNotification.DELETE_TASK);
+        renderTasks();
     }
 
     function addTask() {
